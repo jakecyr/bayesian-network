@@ -54,7 +54,13 @@ module.exports.BayesianNetwork = function(){
     this.getAllLabels = function(){
         var labelObj = {};
         for(var label in this.counts) labelObj[label] = 0;
-            return labelObj;
+        return labelObj;
+    };
+
+    this.getLabelTotalCount = function(){
+        var total = 0;
+        for(var label in this.counts) total += this.counts[label].count;
+        return total;
     };
 
     this.arrayToObj = function(array){
@@ -67,15 +73,17 @@ module.exports.BayesianNetwork = function(){
         var featureValues = this.getAllFeatureValues();
         var labels = this.getAllLabels();
 
+        var totalLabelCount = this.getLabelTotalCount();
+
         var inputObj = this.arrayToObj(input);
 
-        var maxValue = 0;
+        var maxValue = -100;
         var maxLabel = "";
 
         //Loop through each known label
         for(var label in labels){
             var list = this.counts[label].list; //Get the list of feature values for the label
-            var total = 1;
+            var total = Math.log10(this.counts[label].count / totalLabelCount);
 
             //Loop through each known feature value
             for(var featureValue in featureValues){
@@ -83,16 +91,20 @@ module.exports.BayesianNetwork = function(){
                 if(inputObj[featureValue]){
                     //Get the probability and count for the current feature value
                     var featureObj = this.counts[label].list[featureValue];
-                    if(featureObj) total *= (featureObj.probability == 0 ? 1 : featureObj.probability);
+                    if(featureObj){
+                        total = Math.max(total, Math.log10(featureObj.probability));
+                    }
                 }
                 else{
                     var featureObj = this.counts[label].list[featureValue];
-                    if(featureObj) total *= (1 - (featureObj.probability == 0 ? 1 : featureObj.probability));
+                    if(featureObj) {
+                        total = Math.max(total, Math.log10(1 - featureObj.probability));
+                    }
                 }
             }
 
             //Save the probability value calculated for the label
-            labels[label] = total;
+            labels[label] = 1 - Math.abs(total);
 
             //Check if this label has the highest P so far
             if(total > maxValue){
@@ -105,7 +117,7 @@ module.exports.BayesianNetwork = function(){
         return {
             classification: {
                 label: maxLabel,
-                value: maxValue
+                value: 1 - Math.abs(maxValue)
             },
             labels: labels
         };
