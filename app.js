@@ -1,6 +1,6 @@
-var network = require("./bayesian_network");
-
-var net = new network.BayesianNetwork();
+var fs = require("fs");
+var BayesianNetwork = require("./bayesian_network");
+var classifier = new BayesianNetwork();
 
 var trainingData = [
     {input: "Today was a great fun beautiful day", output: "positive"},
@@ -16,12 +16,10 @@ var trainingData = [
     {input: "It was rainy outside today", output: "negative"}
 ];
 
-var training = "You are not my favorite".toUpperCase().split(" ");
+classifier.train(trainingData);
+classifier.calculateProbabilities();
 
-net.train(trainingData);
-net.calculateProbabilities();
+var training = "I hate you";
+console.log(classifier.classify(training));
 
-var prediction = net.predict(training);
-
-//Logs an object with P values for all labels and the max P value including the corresponding label
-console.log(prediction);
+// classifier.save("brain.js");

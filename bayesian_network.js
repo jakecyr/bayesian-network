@@ -1,129 +1,180 @@
-module.exports.BayesianNetwork = function(){
-    this.counts = {};
+var BayesianNetwork = function(fileName){
+    this.data = {};
+    if(fileName){
+        this.saveLocation = fileName;
+        this.load(fileName);
+    }
+};
 
-    this.train = function(trainingObjArray){
-        for(var i = 0; i < trainingObjArray.length; i++){
-            this.addElement(trainingObjArray[i].input.toUpperCase().split(" "), trainingObjArray[i].output.toUpperCase());
+function save(fileName){
+    var data = JSON.stringify(this.data);
+    var fs = require('fs');
+
+    if(this.saveLocation){
+        fs.writeFileSync(this.saveLocation, data);
+    }
+    else{
+        fs.writeFileSync(fileName, data);
+    }
+}
+
+function load(fileName){
+    var fs = require('fs');
+
+    if (fs.existsSync(fileName)) {
+        var buf = fs.readFileSync(fileName);
+        this.data = JSON.parse(buf);
+    }
+    else{
+        console.error(`File '${fileName}' doesn't exist`);
+    }
+}
+
+function train(trainingObjArray){
+    for(var i = 0; i < trainingObjArray.length; i++){
+        this.addDocument(trainingObjArray[i].input.toUpperCase().split(" "), trainingObjArray[i].output.toUpperCase());
+    }
+}
+
+function addDocument(list, val){
+
+    if(typeof list == "string"){
+        return this.addDocument(list.toUpperCase().split(" "), val);
+    }
+
+    val = val.toUpperCase();
+
+    for(var i = 0; i < list.length; i++){
+        if(this.data[val]){
+            this.data[val].list[list[i]] = (this.data[val].list[list[i]] === undefined ? 0 : (parseInt(this.data[val].list[list[i]])||0) + 1);
         }
-    };
+        else{
+            this.data[val] = {"list": {}, "count": 0};
+            this.data[val]["list"][list[i]] = 1;
+        }
+    }
+    this.data[val].count = (this.data[val].count || 0) + 1;
+}
 
-    this.addElement = function(list, val){
-        for(var i = 0; i < list.length; i++){
-            if(this.counts[val]){
-                this.counts[val].list[list[i]] = (this.counts[val].list[list[i]] === undefined ? 0 : this.counts[val].list[list[i]]) + 1;
+function calculateProbabilities(){
+    for(var key in this.data){
+        var currentLabel = this.data[key];
+        var currentList = currentLabel.list;
+        var totalLabelCount = currentLabel.count;
+
+        for(label in currentList){
+            currentList[label] = {
+                count: currentList[label],
+                probability: currentList[label] / totalLabelCount
+            };
+        }
+    }
+}
+
+function getAllFeatureValues(){
+    var featuresObj = {};
+
+    for(var label in this.data){
+        var listOfFeatures = this.data[label].list;
+
+        for(var feature in listOfFeatures){
+            featuresObj[feature] = 1;
+        }
+    }
+
+    return featuresObj;
+}
+
+function getAllLabels(){
+    var labelObj = {};
+    for(var label in this.data) labelObj[label] = 0;
+        return labelObj;
+}
+
+function getLabelTotalCount(){
+    var total = 0;
+    for(var label in this.data) total += this.data[label].count;
+        return total;
+}
+
+function arrayToObj(array){
+    var obj = {};
+    for(var i = 0; i < array.length; i++) obj[array[i]] = 1;
+        return obj;
+}
+
+function classify(input){
+
+    if(typeof input == "string"){
+        return this.classify(input.toUpperCase().split(" "));
+    }
+
+    var featureValues = this.getAllFeatureValues();
+    var labels = this.getAllLabels();
+    var totalLabelCount = this.getLabelTotalCount();
+
+    var inputObj = this.arrayToObj(input);
+
+    var maxValue = -100;
+    var maxLabel = "";
+
+    //Loop through each known label
+    for(var label in labels){
+        var list = this.data[label].list; //Get the list of feature values for the label
+        var total = Math.log10(this.data[label].count / totalLabelCount);
+
+        //Loop through each known feature value
+        for(var featureValue in featureValues){
+            //If the input contains the current feature value
+            if(inputObj[featureValue]){
+                //Get the probability and count for the current feature value
+                var featureObj = this.data[label].list[featureValue];
+                if(featureObj){
+                    total = Math.max(total, Math.log10(featureObj.probability));
+                }
             }
             else{
-                this.counts[val] = {"list": {}, "count": 0};
-                this.counts[val]["list"][list[i]] = 1;
-            }
-        }
-        this.counts[val].count = (this.counts[val].count || 0) + 1;
-    };
-
-    this.calculateProbabilities = function(){
-        for(var key in this.counts){
-            var currentLabel = this.counts[key];
-            var currentList = currentLabel.list;
-            var totalLabelCount  = currentLabel.count;
-
-            for(label in currentList){
-                currentList[label] = {
-                    count: currentList[label],
-                    probability: currentList[label] / totalLabelCount
-                };
-            }
-        }
-
-        // console.log(JSON.stringify(this.counts));
-    };
-
-    this.getAllFeatureValues = function(){
-        var featuresObj = {};
-
-        for(var label in this.counts){
-            var listOfFeatures = this.counts[label].list;
-
-            for(var feature in listOfFeatures){
-                featuresObj[feature] = 1;
-            }
-        }
-
-        return featuresObj;
-    };
-
-    this.getAllLabels = function(){
-        var labelObj = {};
-        for(var label in this.counts) labelObj[label] = 0;
-        return labelObj;
-    };
-
-    this.getLabelTotalCount = function(){
-        var total = 0;
-        for(var label in this.counts) total += this.counts[label].count;
-        return total;
-    };
-
-    this.arrayToObj = function(array){
-        var obj = {};
-        for(var i = 0; i < array.length; i++) obj[array[i]] = 1;
-            return obj;
-    };
-
-    this.predict = function(input){
-        var featureValues = this.getAllFeatureValues();
-        var labels = this.getAllLabels();
-
-        var totalLabelCount = this.getLabelTotalCount();
-
-        var inputObj = this.arrayToObj(input);
-
-        var maxValue = -100;
-        var maxLabel = "";
-
-        //Loop through each known label
-        for(var label in labels){
-            var list = this.counts[label].list; //Get the list of feature values for the label
-            var total = Math.log10(this.counts[label].count / totalLabelCount);
-
-            //Loop through each known feature value
-            for(var featureValue in featureValues){
-                //If the input contains the current feature value
-                if(inputObj[featureValue]){
-                    //Get the probability and count for the current feature value
-                    var featureObj = this.counts[label].list[featureValue];
-                    if(featureObj){
-                        total = Math.max(total, Math.log10(featureObj.probability));
-                    }
-                }
-                else{
-                    var featureObj = this.counts[label].list[featureValue];
-                    if(featureObj) {
-                        total = Math.max(total, Math.log10(1 - featureObj.probability));
-                    }
+                var featureObj = this.data[label].list[featureValue];
+                if(featureObj) {
+                    total = Math.max(total, Math.log10(1 - featureObj.probability));
                 }
             }
-
-            //Save the probability value calculated for the label
-            labels[label] = 1 - Math.abs(total);
-
-            //Check if this label has the highest P so far
-            if(total > maxValue){
-                maxValue = total;
-                maxLabel = label;
-            }
         }
 
-        //Return the prediction label and P value
-        return {
-            classification: {
-                label: maxLabel,
-                value: 1 - Math.abs(maxValue)
-            },
-            labels: labels
-        };
-    };
+        //Save the probability value calculated for the label
+        labels[label] = 1 - Math.abs(total);
 
-    this.toJSON = function(){
-        return JSON.stringify(this.counts);
+        //Check if this label has the highest P so far
+        if(total > maxValue){
+            maxValue = total;
+            maxLabel = label;
+        }
+    }
+
+    //Return the prediction label and P value
+    return {
+        classification: {
+            label: maxLabel,
+            value: 1 - Math.abs(maxValue)
+        },
+        labels: labels
     };
 }
+
+function toJSON(){
+    return JSON.stringify(this.data);
+}
+
+BayesianNetwork.prototype.save = save;
+BayesianNetwork.prototype.load = load;
+BayesianNetwork.prototype.train = train;
+BayesianNetwork.prototype.addDocument = addDocument;
+BayesianNetwork.prototype.calculateProbabilities = calculateProbabilities;
+BayesianNetwork.prototype.getAllFeatureValues = getAllFeatureValues;
+BayesianNetwork.prototype.getAllLabels = getAllLabels;
+BayesianNetwork.prototype.getLabelTotalCount = getLabelTotalCount;
+BayesianNetwork.prototype.arrayToObj = arrayToObj;
+BayesianNetwork.prototype.classify = classify;
+BayesianNetwork.prototype.toJSON = toJSON;
+
+module.exports = BayesianNetwork;
