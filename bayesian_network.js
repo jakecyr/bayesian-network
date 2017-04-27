@@ -30,7 +30,7 @@ function load(fileName){
     }
 }
 
-function train(trainingObjArray){
+function addDocuments(trainingObjArray){
     for(var i = 0; i < trainingObjArray.length; i++){
         this.addDocument(trainingObjArray[i].input.toUpperCase().split(" "), trainingObjArray[i].output.toUpperCase());
     }
@@ -46,7 +46,9 @@ function addDocument(list, val){
 
     for(var i = 0; i < list.length; i++){
         if(this.data[val]){
-            this.data[val].list[list[i]] = (this.data[val].list[list[i]] === undefined ? 0 : (parseInt(this.data[val].list[list[i]])||0) + 1);
+            // console.log(list[i], this.data[val].list[list[i]])
+            this.data[val].list[list[i]] = (this.data[val].list[list[i]] === undefined ? 1 : (parseInt(this.data[val].list[list[i]])||0) + 1);
+            // console.log(list[i], this.data[val].list[list[i]])
         }
         else{
             this.data[val] = {"list": {}, "count": 0};
@@ -65,7 +67,7 @@ function calculateProbabilities(){
         for(label in currentList){
             currentList[label] = {
                 count: currentList[label],
-                probability: currentList[label] / totalLabelCount
+                probability: Math.log(currentList[label])
             };
         }
     }
@@ -121,7 +123,7 @@ function classify(input){
     //Loop through each known label
     for(var label in labels){
         var list = this.data[label].list; //Get the list of feature values for the label
-        var total = Math.log10(this.data[label].count / totalLabelCount);
+        var total = -Math.log(totalLabelCount);
 
         //Loop through each known feature value
         for(var featureValue in featureValues){
@@ -130,19 +132,19 @@ function classify(input){
                 //Get the probability and count for the current feature value
                 var featureObj = this.data[label].list[featureValue];
                 if(featureObj){
-                    total = Math.max(total, Math.log10(featureObj.probability));
+                    total += featureObj.probability;
                 }
             }
             else{
                 var featureObj = this.data[label].list[featureValue];
                 if(featureObj) {
-                    total = Math.max(total, Math.log10(1 - featureObj.probability));
+                    total += (1 - featureObj.probability);
                 }
             }
         }
 
         //Save the probability value calculated for the label
-        labels[label] = 1 - Math.abs(total);
+        labels[label] = total;
 
         //Check if this label has the highest P so far
         if(total > maxValue){
@@ -155,7 +157,7 @@ function classify(input){
     return {
         classification: {
             label: maxLabel,
-            value: 1 - Math.abs(maxValue)
+            value: maxValue
         },
         labels: labels
     };
@@ -165,9 +167,13 @@ function toJSON(){
     return JSON.stringify(this.data);
 }
 
+function fromJSON(jsonData){
+    this.data = JSON.parse(jsonData);
+}
+
 BayesianNetwork.prototype.save = save;
 BayesianNetwork.prototype.load = load;
-BayesianNetwork.prototype.train = train;
+BayesianNetwork.prototype.addDocuments = addDocuments;
 BayesianNetwork.prototype.addDocument = addDocument;
 BayesianNetwork.prototype.calculateProbabilities = calculateProbabilities;
 BayesianNetwork.prototype.getAllFeatureValues = getAllFeatureValues;
