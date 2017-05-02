@@ -1,22 +1,21 @@
 var fs = require("fs");
+const csv = require("csvtojson");
+
 var BayesianNetwork = require("./bayesian_network");
-var classifier = new BayesianNetwork("brain.json");
+var classifier = new BayesianNetwork();
 
-var trainingData = [
-    {input: "Today was a great fun beautiful day", output: "positive"},
-    {input: "I love you", output: "positive"},
-    {input: "I think you are nice", output: "positive"},
-    {input: "I had a lot of fun outside today", output: "positive"},
-    {input: "This is a really positive thing to say", output: "positive"},
-    {input: "I had an awful day", output: "negative"},
-    {input: "I do not like you", output: "negative"},
-    {input: "I hate you", output: "negative"},
-    {input: "You suck", output: "negative"},
-    {input: "You are not a good person", output: "negative"},
-    {input: "It was rainy outside today", output: "negative"}
-];
+// Predict if a tweet is about a natural disaster or not
+fs.readFile("./data/natural_disaster.csv", function(err, result){
 
-classifier.addDocuments(trainingData);
-
-classifier.calculateProbabilities();
-console.log(classifier.classify("You are a nice person"));
+    csv({noheader:false}).fromString(result.toString())
+    .on('csv',(row)=>{ 
+        if(row.length > 0) classifier.addDocument(row[1], row[2]);
+    })
+    .on('done',()=>{
+        classifier.calculateLogFrequencies();
+        console.log(classifier.classify("Thoughts and prayers go out to those who were involved in the fertilizer plant explosion in West, TX.").classification.label);
+        console.log(classifier.classify("Happy to see everyone in Calgary pulling together as community and staying safe through this disaster. #albertaflooding").classification.label);
+        console.log(classifier.classify("@wjjenn haha, oh right! You did mention that before. Gel capsules will work just as well as liquid form.").classification.label);
+        console.log(classifier.classify("Anyone inspired to commit violence after playing Mass Effect 3 is even more unwell than if he played a different game").classification.label);
+    });
+});
