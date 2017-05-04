@@ -8,10 +8,10 @@ fs.readFile("../data/movie_ratings.csv", function(err, result){
 
     csv({noheader:false}).fromString(result.toString())
     .on('csv',(row)=>{ 
-        if(row.length > 0) classifier.addDocument([row[0], row[1], row[4].split("|").join(" ")], row[2]);
+        if(row.length > 0) classifier.addDocument([row[0], row[1]], row[2]);
     })
     .on('done',()=>{
         classifier.calculateLogFrequencies();
-        console.log(classifier.classify(['1', '31', 'Drama']));
+        console.log(classifier.classify(['1', '31']));
     });
 });
