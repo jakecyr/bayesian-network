@@ -1,6 +1,6 @@
 {
     "name": "bayesian-network",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "A simple Bayesian Network classifer based on Baye's rule and the conditional independence assumption.",
     "main": "main.js",
     "directories": {
