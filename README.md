@@ -1,6 +1,6 @@
-# Bayesian Network
+# Naives Bayes Classifer
 
-A simple Bayesian network based on Baye's rule and the conditional independence assumption.
+A simple Bayesian classifer based on Baye's rule and the conditional independence assumption.
 
 To run you must have Node.js installed on your computer (you can also run the JS from the bayesian_network.js file in a browser if you replace the `module.exports.` with `var `).
 

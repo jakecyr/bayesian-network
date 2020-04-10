@@ -1,0 +1,22 @@
+{
+    "name": "naive-bayes-classifer",
+    "version": "1.0.0",
+    "description": "A simple Bayesian classifer based on Baye's rule and the conditional independence assumption.",
+    "main": "main.js",
+    "directories": {
+        "example": "examples"
+    },
+    "dependencies": {
+        "csvtojson": "^2.0.10"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/jakecyr/naive-bayes-classifer.git"
+    },
+    "author": "Jake Cyr",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/jakecyr/naive-bayes-classifer/issues"
+    },
+    "homepage": "https://github.com/jakecyr/naive-bayes-classifer#readme"
+}
