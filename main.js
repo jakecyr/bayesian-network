@@ -1,4 +1,3 @@
-/** @ts-check */
 const fs = require('fs');
 
 class BayesianNetwork {
@@ -6,12 +5,12 @@ class BayesianNetwork {
     data;
     saveLocation;
 
-    constructor(fileName) {
+    constructor(pathToSaveLoadFrom) {
         this.data = {};
 
-        if (fileName) {
-            this.saveLocation = fileName;
-            this.load(fileName);
+        if (pathToSaveLoadFrom) {
+            this.saveLocation = pathToSaveLoadFrom;
+            this.load(pathToSaveLoadFrom);
         }
     }
     save(fileName) {
@@ -63,10 +62,10 @@ class BayesianNetwork {
         }
     }
     calculateLogFrequencies() {
-        for (var key in this.data) {
-            var currentLabel = this.data[key];
-            var currentList = currentLabel.list;
-            var totalLabelCount = currentLabel.count;
+        for (const key in this.data) {
+            const currentLabel = this.data[key];
+            const currentList = currentLabel.list;
+            const totalLabelCount = currentLabel.count;
 
             for (const label in currentList) {
                 currentList[label] = {
@@ -119,34 +118,34 @@ class BayesianNetwork {
             );
         }
 
-        var featureValues = this.getAllFeatureValues();
-        var labels = this.getAllLabels();
+        const featureValues = this.getAllFeatureValues();
+        const labels = this.getAllLabels();
 
-        var inputObj = this.arrayToObj(input);
+        const inputObj = this.arrayToObj(input);
 
-        var maxValue = -Infinity;
-        var maxLabel = "";
+        let maxValue = -Infinity;
+        let maxLabel = "";
 
         //Loop through each known label
-        for (var label in labels) {
-            var logTotal = Math.log(this.data[label].count);
-            var total = 0;
+        for (const label in labels) {
+            let logTotal = Math.log(this.data[label].count);
+            let total = 0;
 
             //Loop through each known feature value
-            for (var featureValue in featureValues) {
+            for (const featureValue in featureValues) {
                 //If the input contains the current feature value
                 if (inputObj[featureValue]) {
                     //Get the logFrequency and count for the current feature value
-                    var featureObj = this.data[label].list[featureValue];
+                    const featureObj = this.data[label].list[featureValue];
+
                     if (featureObj) {
                         total += featureObj.logFrequency - logTotal;
-                    }
-                    else {
+                    } else {
                         total -= logTotal;
                     }
-                }
-                else {
-                    var featureObj = this.data[label].list[featureValue];
+                } else {
+                    const featureObj = this.data[label].list[featureValue];
+
                     if (featureObj) {
                         total += featureObj.notLogFrequency - logTotal;
                     }
@@ -167,9 +166,9 @@ class BayesianNetwork {
         return {
             classification: {
                 label: maxLabel,
-                value: maxValue
+                value: maxValue,
             },
-            labels: labels
+            labels,
         };
     }
     toJSON() {
