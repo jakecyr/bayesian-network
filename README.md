@@ -1,3 +1,3 @@
-# Naives Bayes Classifer
+# Bayesian Network for Classification
 
-A simple Bayesian classifer based on Baye's rule and the conditional independence assumption.
+A simple Bayesian network based on Baye's rule and the conditional independence assumption.

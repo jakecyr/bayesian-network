@@ -1,7 +1,7 @@
 {
-    "name": "naive-bayes-classifer",
+    "name": "bayesian-network",
     "version": "1.0.0",
-    "description": "A simple Bayesian classifer based on Baye's rule and the conditional independence assumption.",
+    "description": "A simple Bayesian Network classifer based on Baye's rule and the conditional independence assumption.",
     "main": "main.js",
     "directories": {
         "example": "examples"
@@ -11,12 +11,12 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/jakecyr/naive-bayes-classifer.git"
+        "url": "git+https://github.com/jakecyr/bayesian-network.git"
     },
     "author": "Jake Cyr",
     "license": "ISC",
     "bugs": {
-        "url": "https://github.com/jakecyr/naive-bayes-classifer/issues"
+        "url": "https://github.com/jakecyr/bayesian-network/issues"
     },
-    "homepage": "https://github.com/jakecyr/naive-bayes-classifer#readme"
+    "homepage": "https://github.com/jakecyr/bayesian-network#readme"
 }
